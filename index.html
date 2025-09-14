@@ -353,16 +353,31 @@
         style_Karo_28, style_HumbangHasungdutan_29, style_DeliSerdang_30, style_Dairi_31, style_Asahan_32, style_Batubara_33
       ];
 
-      // Fungsi untuk menentukan warna berdasarkan suitability class
+      // Fungsi untuk menentukan warna berdasarkan suitability class - UPDATED
       function getSuitabilityColor(suitabilityClass) {
-        if (!suitabilityClass) return '#cccccc'; // abu-abu untuk data kosong
+        if (!suitabilityClass) {
+          console.log('No suitability class found');
+          return '#cccccc'; // abu-abu untuk data kosong
+        }
         
-        const sc = suitabilityClass.toString().toLowerCase().trim();
-        if (sc === 'S1 - Sangat Sesuai' || sc === 'sangat sesuai') return '#2d5016'; // hijau tua
-        if (sc === 'S2 - Cukup Sesuai' || sc === 'cukup sesuai') return '#85b66f'; // hijau
-        if (sc === 'S3 - Sesuai Marginal' || sc === 'sesuai marjinal') return '#fec980'; // kuning/orange
-        if (sc === 'N - Tidak Sesuai' || sc === 'tidak sesuai') return '#ff0900'; // merah
+        // Konversi ke string dan bersihkan dari whitespace
+        const sc = suitabilityClass.toString().trim();
+        console.log('Suitability class found:', sc);
         
+        // Pencocokan dengan kategori lengkap
+        if (sc === 'S1 - Sangat Sesuai') return '#2d5016'; // hijau tua
+        if (sc === 'S2 - Cukup Sesuai') return '#85b66f'; // hijau
+        if (sc === 'S3 - Sesuai Marjinal') return '#fec980'; // kuning/orange
+        if (sc === 'N - Tidak Sesuai') return '#ff0900'; // merah
+        
+        // Fallback untuk pencocokan partial case-insensitive
+        const scLower = sc.toLowerCase();
+        if (scLower.includes('s1') && scLower.includes('sangat sesuai')) return '#2d5016';
+        if (scLower.includes('s2') && scLower.includes('cukup sesuai')) return '#85b66f';
+        if (scLower.includes('s3') && (scLower.includes('sesuai marjinal') || scLower.includes('sesuai marginal'))) return '#fec980';
+        if (scLower.includes('n') && scLower.includes('tidak sesuai')) return '#ff0900';
+        
+        console.log('No matching suitability class for:', sc);
         return '#cccccc'; // default abu-abu
       }
 
@@ -394,9 +409,12 @@
           
           features.forEach(feature => {
             // Debug: tampilkan properties dari beberapa feature untuk mengetahui struktur data
-            if (allDesaFeatures.length < 5) { // hanya tampilkan untuk 5 feature pertama
+            if (allDesaFeatures.length < 10) { // tampilkan untuk 10 feature pertama
               console.log('Feature properties:', Object.keys(feature.getProperties()));
-              console.log('Sample properties values:', feature.getProperties());
+              const props = feature.getProperties();
+              console.log('Suitabil_1:', props['Suitabil_1']);
+              console.log('Suitability_Class:', props['Suitability_Class']);
+              console.log('SUITABILITY:', props['SUITABILITY']);
             }
             
             // Simpan style function asli untuk referensi jika diperlukan
@@ -499,11 +517,20 @@
       function getSuitabilityLabel(suitabilityClass) {
         if (!suitabilityClass) return 'Tidak Diketahui';
         
-        const sc = suitabilityClass.toString().toLowerCase().trim();
-        if (sc === 'S1 - Sangat Sesuai' || sc === 'sangat sesuai') return 'S1 - Sangat Sesuai';
-        if (sc === 'S2 - Cukup Sesuai' || sc === 'cukup sesuai') return 'S2 - Cukup Sesuai';
-        if (sc === 'S3 - Sesuai Marjinal' || sc === 'sesuai marjinal') return 'S3 - Sesuai Marjinal';
-        if (sc === 'N - Tidak Sesuai' || sc === 'tidak sesuai') return 'N - Tidak Sesuai';
+        const sc = suitabilityClass.toString().trim();
+        
+        // Pencocokan dengan kategori lengkap
+        if (sc === 'S1 - Sangat Sesuai') return 'S1 - Sangat Sesuai';
+        if (sc === 'S2 - Cukup Sesuai') return 'S2 - Cukup Sesuai';
+        if (sc === 'S3 - Sesuai Marjinal') return 'S3 - Sesuai Marjinal';
+        if (sc === 'N - Tidak Sesuai') return 'N - Tidak Sesuai';
+        
+        // Fallback untuk pencocokan partial
+        const scLower = sc.toLowerCase();
+        if (scLower.includes('s1') && scLower.includes('sangat sesuai')) return 'S1 - Sangat Sesuai';
+        if (scLower.includes('s2') && scLower.includes('cukup sesuai')) return 'S2 - Cukup Sesuai';
+        if (scLower.includes('s3') && (scLower.includes('sesuai marjinal') || scLower.includes('sesuai marginal'))) return 'S3 - Sesuai Marjinal';
+        if (scLower.includes('n') && scLower.includes('tidak sesuai')) return 'N - Tidak Sesuai';
         
         return suitabilityClass; // return original jika tidak cocok dengan kategori
       }
@@ -511,11 +538,20 @@
       function getSuitabilityClass(suitabilityClass) {
         if (!suitabilityClass) return '';
         
-        const sc = suitabilityClass.toString().toLowerCase().trim();
-        if (sc === 'S1 - Sangat Sesuai' || sc === 'sangat sesuai') return 'suitability-s1';
-        if (sc === 'S2 - Cukup Sesuai' || sc === 'cukup sesuai') return 'suitability-s2';
-        if (sc === 'S3 - Sesuai Marginal' || sc === 'sesuai marjinal') return 'suitability-s3';
-        if (sc === 'N - Tidak Sesuai' || sc === 'tidak sesuai') return 'suitability-n';
+        const sc = suitabilityClass.toString().trim();
+        
+        // Pencocokan dengan kategori lengkap
+        if (sc === 'S1 - Sangat Sesuai') return 'suitability-s1';
+        if (sc === 'S2 - Cukup Sesuai') return 'suitability-s2';
+        if (sc === 'S3 - Sesuai Marjinal') return 'suitability-s3';
+        if (sc === 'N - Tidak Sesuai') return 'suitability-n';
+        
+        // Fallback untuk pencocokan partial
+        const scLower = sc.toLowerCase();
+        if (scLower.includes('s1') && scLower.includes('sangat sesuai')) return 'suitability-s1';
+        if (scLower.includes('s2') && scLower.includes('cukup sesuai')) return 'suitability-s2';
+        if (scLower.includes('s3') && (scLower.includes('sesuai marjinal') || scLower.includes('sesuai marginal'))) return 'suitability-s3';
+        if (scLower.includes('n') && scLower.includes('tidak sesuai')) return 'suitability-n';
         
         return '';
       }
