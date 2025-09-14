@@ -574,4 +574,37 @@
                 <tr><td>Faktor Pembatas</td><td>: ${limitingFactor || '-'}</td></tr>
                 <tr><td>Indeks Iklim</td><td>: ${safeValue(props['Index_Clim'] || props['INDEX_CLIMATE'])}</td></tr>
                 <tr><td>Indeks Tanah</td><td>: ${safeValue(props['Index_Soil'] || props['INDEX_SOIL'])}</td></tr>
-                <tr><td>Indeks Topografi</td><td>: ${safeValue(props['Index_Topo'] || props['INDEX_TOPOGRAPHY'])}</td></tr
+                <tr><td>Indeks Topografi</td><td>: ${safeValue(props['Index_Topo'] || props['INDEX_TOPOGRAPHY'])}</td></tr>
+                <tr><td>Indeks Aksesibilitas</td><td>: ${safeValue(props['Index_Acce'] || props['INDEX_ACCESSIBILITY'])}</td></tr>
+                <tr><td>Indeks Lingkungan</td><td>: ${safeValue(props['Index_Envi'] || props['INDEX_ENVIRONMENT'])}</td></tr>
+              </table>
+            `;
+
+            popupContent.innerHTML = content;
+            popupContainer.style.display = 'block';
+            overlay.setPosition(closest);
+
+          } catch (err) {
+            console.error("Error saat membuat konten popup:", err);
+          }
+        } else {
+          overlay.setPosition(undefined);
+          popupContainer.style.display = 'none';
+        }
+      });
+
+    } // end initializeCustomFeatures
+
+    // Tunggu sampai semua variabel dan objek siap
+    const mapReadyCheck = setInterval(function() {
+      if (typeof map !== 'undefined' && 
+          typeof ol !== 'undefined' && 
+          typeof json_Toba_1 !== 'undefined' && 
+          typeof style_Toba_1 !== 'undefined') {
+        clearInterval(mapReadyCheck);
+        initializeCustomFeatures();
+      }
+    }, 100);
+  </script>
+</body>
+</html>
