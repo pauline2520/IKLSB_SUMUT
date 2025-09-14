@@ -358,10 +358,10 @@
         if (!suitabilityClass) return '#cccccc'; // abu-abu untuk data kosong
         
         const sc = suitabilityClass.toString().toLowerCase().trim();
-        if (sc === 's1' || sc === 'sangat sesuai') return '#2d5016'; // hijau tua
-        if (sc === 's2' || sc === 'cukup sesuai') return '#85b66f'; // hijau
-        if (sc === 's3' || sc === 'sesuai marjinal') return '#fec980'; // kuning/orange
-        if (sc === 'n' || sc === 'tidak sesuai') return '#ff0900'; // merah
+        if (sc === 'S1 - Sangat Sesuai' || sc === 'sangat sesuai') return '#2d5016'; // hijau tua
+        if (sc === 'S2 - Cukup Sesuai' || sc === 'cukup sesuai') return '#85b66f'; // hijau
+        if (sc === 'S3 - Sesuai Marginal' || sc === 'sesuai marjinal') return '#fec980'; // kuning/orange
+        if (sc === 'N - Tidak Sesuai' || sc === 'tidak sesuai') return '#ff0900'; // merah
         
         return '#cccccc'; // default abu-abu
       }
@@ -500,10 +500,10 @@
         if (!suitabilityClass) return 'Tidak Diketahui';
         
         const sc = suitabilityClass.toString().toLowerCase().trim();
-        if (sc === 's1' || sc === 'sangat sesuai') return 'S1 - Sangat Sesuai';
-        if (sc === 's2' || sc === 'cukup sesuai') return 'S2 - Cukup Sesuai';
-        if (sc === 's3' || sc === 'sesuai marjinal') return 'S3 - Sesuai Marjinal';
-        if (sc === 'n' || sc === 'tidak sesuai') return 'N - Tidak Sesuai';
+        if (sc === 'S1 - Sangat Sesuai' || sc === 'sangat sesuai') return 'S1 - Sangat Sesuai';
+        if (sc === 'S2 - Cukup Sesuai' || sc === 'cukup sesuai') return 'S2 - Cukup Sesuai';
+        if (sc === 'S3 - Sesuai Marjinal' || sc === 'sesuai marjinal') return 'S3 - Sesuai Marjinal';
+        if (sc === 'N - Tidak Sesuai' || sc === 'tidak sesuai') return 'N - Tidak Sesuai';
         
         return suitabilityClass; // return original jika tidak cocok dengan kategori
       }
@@ -512,10 +512,10 @@
         if (!suitabilityClass) return '';
         
         const sc = suitabilityClass.toString().toLowerCase().trim();
-        if (sc === 's1' || sc === 'sangat sesuai') return 'suitability-s1';
-        if (sc === 's2' || sc === 'cukup sesuai') return 'suitability-s2';
-        if (sc === 's3' || sc === 'sesuai marjinal') return 'suitability-s3';
-        if (sc === 'n' || sc === 'tidak sesuai') return 'suitability-n';
+        if (sc === 'S1 - Sangat Sesuai' || sc === 'sangat sesuai') return 'suitability-s1';
+        if (sc === 'S2 - Cukup Sesuai' || sc === 'cukup sesuai') return 'suitability-s2';
+        if (sc === 'S3 - Sesuai Marginal' || sc === 'sesuai marjinal') return 'suitability-s3';
+        if (sc === 'N - Tidak Sesuai' || sc === 'tidak sesuai') return 'suitability-n';
         
         return '';
       }
@@ -577,7 +577,6 @@
                 <tr><td>Nama Kecamatan</td><td>: ${safeValue(props['WADMKC'])}</td></tr>
                 <tr><td>Nama Kabupaten/Kota</td><td>: ${safeValue(props['WADMKK'])}</td></tr>
                 <tr><td>Luas Wilayah (Ha)</td><td>: ${safeValue(props['LUASWH'])}</td></tr>
-                <tr><td>Faktor Pembatas</td><td>: ${limitingFactor || '-'}</td></tr>
                 <tr><td>Indeks Iklim</td><td>: ${safeValue(props['Index_Clim'] || props['INDEX_CLIMATE'])}</td></tr>
                 <tr><td>Indeks Tanah</td><td>: ${safeValue(props['Index_Soil'] || props['INDEX_SOIL'])}</td></tr>
                 <tr><td>Indeks Topografi</td><td>: ${safeValue(props['Index_Topo'] || props['INDEX_TOPOGRAPHY'])}</td></tr>
