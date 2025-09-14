@@ -199,7 +199,7 @@
 <body>
   <div id="app-container">
     <div id="sidebar">
-      <h1>Peta Kesesuaian Lahan Desa/Kelurahan Provinsi Sumatera Utara rev 1</h1>
+      <h1>Peta Kesesuaian Lahan Desa/Kelurahan Provinsi Sumatera Utara</h1>
 
       <div class="search-section">
         <h2>Pilih Kabupaten / Kota</h2>
@@ -393,6 +393,12 @@
           });
           
           features.forEach(feature => {
+            // Debug: tampilkan properties dari beberapa feature untuk mengetahui struktur data
+            if (allDesaFeatures.length < 5) { // hanya tampilkan untuk 5 feature pertama
+              console.log('Feature properties:', Object.keys(feature.getProperties()));
+              console.log('Sample properties values:', feature.getProperties());
+            }
+            
             // Simpan style function asli untuk referensi jika diperlukan
             feature.set('original_style', allStyleFunctions[index]);
             allDesaFeatures.push(feature);
