@@ -1,64 +1,577 @@
 <!doctype html>
-<html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
-        <meta name="mobile-web-app-capable" content="yes">
-        <meta name="apple-mobile-web-app-capable" content="yes">
-        <link rel="stylesheet" href="./resources/ol.css">
-        <link rel="stylesheet" href="resources/fontawesome-all.min.css">
-        <link href="resources/photon-geocoder-autocomplete.min.css" rel="stylesheet">
-        <link rel="stylesheet" href="./resources/ol-layerswitcher.css">
-        <link rel="stylesheet" href="./resources/qgis2web.css">
-        <style>
-        html, body {
-            background-color: #ffffff;
-        }
-        .ol-control > * {
-            background-color: #f8f8f8!important;
-            color: #444444!important;
-            border-radius: 0px;
-        }
-        .ol-attribution a, .gcd-gl-input::placeholder, .search-layer-input-search::placeholder {
-            color: #444444!important;
-        }
-        .search-layer-input-search {
-            background-color: #f8f8f8!important;
-        }
-        .ol-control > *:focus, .ol-control >*:hover {
-            background-color: rgba(248, 248, 248, 0.7)!important;
-        } 
-        .ol-control {
-            background-color: rgba(255,255,255,.4) !important;
-            padding: 2px !important;
-        } 
-        </style>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  
+  <link rel="stylesheet" href="./resources/ol.css">
+  <link rel="stylesheet" href="resources/fontawesome-all.min.css">
+  <link rel="stylesheet" href="./resources/qgis2web.css">
 
-        <style>
-        #map {
-            width: 591px;
-            height: 744px;
-        }
-        </style>
-        <title></title>
-    </head>
-    <body>
-        <div id="map">
-            <div id="popup" class="ol-popup">
-                <a href="#" id="popup-closer" class="ol-popup-closer"></a>
-                <div id="popup-content"></div>
-            </div>
+  <style>
+    html, body {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      overflow: hidden;
+    }
+    #app-container {
+      display: flex;
+      height: 100%;
+      width: 100%;
+    }
+    #sidebar {
+      width: 320px;
+      flex-shrink: 0;
+      background-color: #f8f9fa;
+      padding: 20px;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+      overflow-y: auto;
+      z-index: 1000;
+    }
+    #map {
+      flex-grow: 1;
+      height: 100%;
+    }
+    #sidebar h1 {
+      font-size: 20px;
+      color: #333;
+      margin-top: 0;
+      margin-bottom: 20px;
+      line-height: 1.3;
+    }
+    .legend-section, .search-section {
+      margin-bottom: 25px;
+    }
+    .legend-section h2, .search-section h2 {
+      font-size: 16px;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 8px;
+      margin-bottom: 15px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .legend-color {
+      width: 20px;
+      height: 20px;
+      margin-right: 10px;
+      border: 1px solid #888;
+      border-radius: 3px;
+    }
+    .search-container {
+      display: flex;
+      gap: 8px;
+    }
+    #search-input {
+      width: 100%;
+      padding: 8px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    #btn-reset {
+      padding: 8px 12px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background-color: #e9ecef;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    /* --- STYLE POPUP --- */
+    .ol-popup {
+      position: absolute;
+      background-color: white;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+      padding: 15px 18px;
+      border-radius: 8px;
+      border: 1px solid #cccccc;
+      min-width: 300px;
+      font-size: 13px;
+      z-index: 10000;
+      pointer-events: auto;
+    }
+    
+    .ol-popup-closer {
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      color: #666;
+      padding: 0;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .ol-popup-closer:hover {
+      color: #000;
+    }
+    
+    #popup-content h3 {
+      margin: 0 0 2px 0;
+      font-size: 16px;
+      color: #000;
+      padding-right: 25px;
+    }
+    #popup-content h4 {
+      margin: 0 0 10px 0;
+      font-size: 14px;
+      color: #555;
+      font-weight: normal;
+    }
+    #popup-content hr {
+      border: 0;
+      border-top: 1px solid #eee;
+      margin: 10px 0;
+    }
+    .popup-table { 
+      width: 100%; 
+      border-spacing: 0; 
+      margin-bottom: 10px;
+    }
+    .popup-table td { 
+      padding: 4px 0; 
+      vertical-align: top; 
+      font-size: 13px;
+    }
+    .popup-table td:first-child {
+      font-weight: 500;
+      color: #333;
+      width: 160px;
+    }
+    
+    .interpretasi {
+      margin-top: 15px;
+      font-size: 13px;
+      line-height: 1.4;
+      color: #444;
+    }
+    .interpretasi h2 {
+      font-size: 15px;
+      margin-bottom: 8px;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 5px;
+    }
+    .interpretasi p {
+      margin: 6px 0;
+      text-align: justify;
+    }
+
+    /* Suitability class indicator */
+    .suitability-indicator {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-weight: 500;
+      font-size: 12px;
+      margin-left: 5px;
+    }
+    
+    .suitability-s1 { background-color: #2d5016; color: white; }
+    .suitability-s2 { background-color: #85b66f; color: white; }
+    .suitability-s3 { background-color: #fec980; color: #333; }
+    .suitability-n { background-color: #ff0900; color: white; }
+
+    /* small screens: make popup narrower */
+    @media (max-width: 420px) {
+      .ol-popup { min-width: 200px; font-size: 12px; }
+      .popup-table td:first-child { width: 120px; }
+    }
+  </style>
+  <title>Peta Kesesuaian Lahan Provinsi Sumatera Utara</title>
+</head>
+<body>
+  <div id="app-container">
+    <div id="sidebar">
+      <h1>Peta Kesesuaian Lahan Desa/Kelurahan Provinsi Sumatera Utara</h1>
+
+      <div class="search-section">
+        <h2>Pilih Kabupaten / Kota</h2>
+        <div class="search-container">
+          <input type="text" id="search-input" placeholder="Ketik nama...">
+          <button id="btn-reset" title="Kembali ke Sumatera Utara">Reset</button>
         </div>
-        <script src="resources/qgis2web_expressions.js"></script>
-        <script src="./resources/functions.js"></script>
-        <script src="./resources/ol.js"></script>
-        <script src="./resources/ol-layerswitcher.js"></script>
-        <script src="resources/photon-geocoder-autocomplete.min.js"></script>
-        <script src="layers/Toba_1.js"></script><script src="layers/TapanuliUtara_2.js"></script><script src="layers/TapanuliTengah_3.js"></script><script src="layers/TapanuliSelatan_4.js"></script><script src="layers/Simalungun_5.js"></script><script src="layers/SerdangBedagai_6.js"></script><script src="layers/Samosir_7.js"></script><script src="layers/PakpakBarat_8.js"></script><script src="layers/PadangLawasUtara_9.js"></script><script src="layers/PadangLawas_10.js"></script><script src="layers/NiasUtara_11.js"></script><script src="layers/NiasSelatan_12.js"></script><script src="layers/NiasBarat_13.js"></script><script src="layers/Nias_14.js"></script><script src="layers/MandailingNatal_15.js"></script><script src="layers/Langkat_16.js"></script><script src="layers/LabuhanbatuUtara_17.js"></script><script src="layers/LabuhanbatuSelatan_18.js"></script><script src="layers/Labuhanbatu_19.js"></script><script src="layers/KotaTebingTinggi_20.js"></script><script src="layers/KotaTanjungBalai_21.js"></script><script src="layers/KotaSibolga_22.js"></script><script src="layers/KotaPematangSiantar_23.js"></script><script src="layers/KotaPadangSidempuan_24.js"></script><script src="layers/KotaMedan_25.js"></script><script src="layers/KotaGunungsitoli_26.js"></script><script src="layers/KotaBinjai_27.js"></script><script src="layers/Karo_28.js"></script><script src="layers/HumbangHasungdutan_29.js"></script><script src="layers/DeliSerdang_30.js"></script><script src="layers/Dairi_31.js"></script><script src="layers/Asahan_32.js"></script><script src="layers/Batubara_33.js"></script><script src="layers/BatasKabupatenSumateraUtara_34.js"></script>
-        <script src="styles/Toba_1_style.js"></script><script src="styles/TapanuliUtara_2_style.js"></script><script src="styles/TapanuliTengah_3_style.js"></script><script src="styles/TapanuliSelatan_4_style.js"></script><script src="styles/Simalungun_5_style.js"></script><script src="styles/SerdangBedagai_6_style.js"></script><script src="styles/Samosir_7_style.js"></script><script src="styles/PakpakBarat_8_style.js"></script><script src="styles/PadangLawasUtara_9_style.js"></script><script src="styles/PadangLawas_10_style.js"></script><script src="styles/NiasUtara_11_style.js"></script><script src="styles/NiasSelatan_12_style.js"></script><script src="styles/NiasBarat_13_style.js"></script><script src="styles/Nias_14_style.js"></script><script src="styles/MandailingNatal_15_style.js"></script><script src="styles/Langkat_16_style.js"></script><script src="styles/LabuhanbatuUtara_17_style.js"></script><script src="styles/LabuhanbatuSelatan_18_style.js"></script><script src="styles/Labuhanbatu_19_style.js"></script><script src="styles/KotaTebingTinggi_20_style.js"></script><script src="styles/KotaTanjungBalai_21_style.js"></script><script src="styles/KotaSibolga_22_style.js"></script><script src="styles/KotaPematangSiantar_23_style.js"></script><script src="styles/KotaPadangSidempuan_24_style.js"></script><script src="styles/KotaMedan_25_style.js"></script><script src="styles/KotaGunungsitoli_26_style.js"></script><script src="styles/KotaBinjai_27_style.js"></script><script src="styles/Karo_28_style.js"></script><script src="styles/HumbangHasungdutan_29_style.js"></script><script src="styles/DeliSerdang_30_style.js"></script><script src="styles/Dairi_31_style.js"></script><script src="styles/Asahan_32_style.js"></script><script src="styles/Batubara_33_style.js"></script><script src="styles/BatasKabupatenSumateraUtara_34_style.js"></script>
-        <script src="./layers/layers.js" type="text/javascript"></script> 
-        <script src="./resources/Autolinker.min.js"></script>
-        <script src="./resources/qgis2web.js"></script>
-    </body>
-</html>
+      </div>
+
+      <div class="legend-section">
+        <h2>Kelas Kesesuaian Lahan</h2>
+        <div class="legend-item">
+          <div class="legend-color" style="background-color: #2d5016;"></div>
+          <span>S1 - Sangat Sesuai</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background-color: #85b66f;"></div>
+          <span>S2 - Cukup Sesuai</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background-color: #fec980;"></div>
+          <span>S3 - Sesuai Marjinal</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background-color: #ff0900;"></div>
+          <span>N - Tidak Sesuai</span>
+        </div>
+      </div>
+
+      <div class="interpretasi">
+        <h2>Interpretasi Kesesuaian</h2>
+        <p><b>S1 (Sangat Sesuai)</b> - Lahan tidak mempunyai faktor pembatas yang berarti atau nyata terhadap penggunaan secara berkelanjutan, atau faktor pembatas bersifat minor dan tidak akan mengurangi produktivitas lahan secara nyata.</p>
+        <p><b>S2 (Cukup Sesuai)</b> - Lahan mempunyai faktor pembatas yang akan menurunkan tingkat produktivitas dan manfaatnya atau meningkatkan masukan yang diperlukan.</p>
+        <p><b>S3 (Sesuai Marjinal)</b> - Lahan mempunyai faktor pembatas yang berat untuk penggunaan yang berkelanjutan dan akan mengurangi produktivitas atau manfaatnya.</p>
+        <p><b>N (Tidak Sesuai)</b> - Lahan mempunyai faktor pembatas yang sangat berat sehingga mencegah segala kemungkinan penggunaan lahan tersebut secara berkelanjutan.</p>
+      </div>
+    </div>
+
+    <div id="map">
+      <div id="popup" class="ol-popup" style="display: none;">
+        <button id="popup-closer" class="ol-popup-closer" aria-label="Tutup popup">×</button>
+        <div id="popup-content"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Script imports dari qgis2web -->
+  <script src="resources/qgis2web_expressions.js"></script>
+  <script src="./resources/functions.js"></script>
+  <script src="./resources/ol.js"></script>
+  <script src="./resources/ol-layerswitcher.js"></script>
+  
+  <!-- Layer scripts -->
+  <script src="layers/Toba_1.js"></script>
+  <script src="layers/TapanuliUtara_2.js"></script>
+  <script src="layers/TapanuliTengah_3.js"></script>
+  <script src="layers/TapanuliSelatan_4.js"></script>
+  <script src="layers/Simalungun_5.js"></script>
+  <script src="layers/SerdangBedagai_6.js"></script>
+  <script src="layers/Samosir_7.js"></script>
+  <script src="layers/PakpakBarat_8.js"></script>
+  <script src="layers/PadangLawasUtara_9.js"></script>
+  <script src="layers/PadangLawas_10.js"></script>
+  <script src="layers/NiasUtara_11.js"></script>
+  <script src="layers/NiasSelatan_12.js"></script>
+  <script src="layers/NiasBarat_13.js"></script>
+  <script src="layers/Nias_14.js"></script>
+  <script src="layers/MandailingNatal_15.js"></script>
+  <script src="layers/Langkat_16.js"></script>
+  <script src="layers/LabuhanbatuUtara_17.js"></script>
+  <script src="layers/LabuhanbatuSelatan_18.js"></script>
+  <script src="layers/Labuhanbatu_19.js"></script>
+  <script src="layers/KotaTebingTinggi_20.js"></script>
+  <script src="layers/KotaTanjungBalai_21.js"></script>
+  <script src="layers/KotaSibolga_22.js"></script>
+  <script src="layers/KotaPematangSiantar_23.js"></script>
+  <script src="layers/KotaPadangSidempuan_24.js"></script>
+  <script src="layers/KotaMedan_25.js"></script>
+  <script src="layers/KotaGunungsitoli_26.js"></script>
+  <script src="layers/KotaBinjai_27.js"></script>
+  <script src="layers/Karo_28.js"></script>
+  <script src="layers/HumbangHasungdutan_29.js"></script>
+  <script src="layers/DeliSerdang_30.js"></script>
+  <script src="layers/Dairi_31.js"></script>
+  <script src="layers/Asahan_32.js"></script>
+  <script src="layers/Batubara_33.js"></script>
+  <script src="layers/BatasKabupatenSumateraUtara_34.js"></script>
+  
+  <!-- Style scripts -->
+  <script src="styles/Toba_1_style.js"></script>
+  <script src="styles/TapanuliUtara_2_style.js"></script>
+  <script src="styles/TapanuliTengah_3_style.js"></script>
+  <script src="styles/TapanuliSelatan_4_style.js"></script>
+  <script src="styles/Simalungun_5_style.js"></script>
+  <script src="styles/SerdangBedagai_6_style.js"></script>
+  <script src="styles/Samosir_7_style.js"></script>
+  <script src="styles/PakpakBarat_8_style.js"></script>
+  <script src="styles/PadangLawasUtara_9_style.js"></script>
+  <script src="styles/PadangLawas_10_style.js"></script>
+  <script src="styles/NiasUtara_11_style.js"></script>
+  <script src="styles/NiasSelatan_12_style.js"></script>
+  <script src="styles/NiasBarat_13_style.js"></script>
+  <script src="styles/Nias_14_style.js"></script>
+  <script src="styles/MandailingNatal_15_style.js"></script>
+  <script src="styles/Langkat_16_style.js"></script>
+  <script src="styles/LabuhanbatuUtara_17_style.js"></script>
+  <script src="styles/LabuhanbatuSelatan_18_style.js"></script>
+  <script src="styles/Labuhanbatu_19_style.js"></script>
+  <script src="styles/KotaTebingTinggi_20_style.js"></script>
+  <script src="styles/KotaTanjungBalai_21_style.js"></script>
+  <script src="styles/KotaSibolga_22_style.js"></script>
+  <script src="styles/KotaPematangSiantar_23_style.js"></script>
+  <script src="styles/KotaPadangSidempuan_24_style.js"></script>
+  <script src="styles/KotaMedan_25_style.js"></script>
+  <script src="styles/KotaGunungsitoli_26_style.js"></script>
+  <script src="styles/KotaBinjai_27_style.js"></script>
+  <script src="styles/Karo_28_style.js"></script>
+  <script src="styles/HumbangHasungdutan_29_style.js"></script>
+  <script src="styles/DeliSerdang_30_style.js"></script>
+  <script src="styles/Dairi_31_style.js"></script>
+  <script src="styles/Asahan_32_style.js"></script>
+  <script src="styles/Batubara_33_style.js"></script>
+  <script src="styles/BatasKabupatenSumateraUtara_34_style.js"></script>
+  
+  <script src="./layers/layers.js" type="text/javascript"></script>
+  <script src="./resources/Autolinker.min.js"></script>
+  <script src="./resources/qgis2web.js"></script>
+  
+  <script>
+    function initializeCustomFeatures() {
+      console.log("Peta siap. Memulai skrip kustom untuk Sumatera Utara.");
+
+      // Data layer dan style functions untuk semua kabupaten/kota di Sumatera Utara
+      const allJsonData = [
+        json_Toba_1, json_TapanuliUtara_2, json_TapanuliTengah_3, json_TapanuliSelatan_4, json_Simalungun_5,
+        json_SerdangBedagai_6, json_Samosir_7, json_PakpakBarat_8, json_PadangLawasUtara_9, json_PadangLawas_10,
+        json_NiasUtara_11, json_NiasSelatan_12, json_NiasBarat_13, json_Nias_14, json_MandailingNatal_15,
+        json_Langkat_16, json_LabuhanbatuUtara_17, json_LabuhanbatuSelatan_18, json_Labuhanbatu_19,
+        json_KotaTebingTinggi_20, json_KotaTanjungBalai_21, json_KotaSibolga_22, json_KotaPematangSiantar_23,
+        json_KotaPadangSidempuan_24, json_KotaMedan_25, json_KotaGunungsitoli_26, json_KotaBinjai_27,
+        json_Karo_28, json_HumbangHasungdutan_29, json_DeliSerdang_30, json_Dairi_31, json_Asahan_32, json_Batubara_33
+      ];
+      
+      const allStyleFunctions = [
+        style_Toba_1, style_TapanuliUtara_2, style_TapanuliTengah_3, style_TapanuliSelatan_4, style_Simalungun_5,
+        style_SerdangBedagai_6, style_Samosir_7, style_PakpakBarat_8, style_PadangLawasUtara_9, style_PadangLawas_10,
+        style_NiasUtara_11, style_NiasSelatan_12, style_NiasBarat_13, style_Nias_14, style_MandailingNatal_15,
+        style_Langkat_16, style_LabuhanbatuUtara_17, style_LabuhanbatuSelatan_18, style_Labuhanbatu_19,
+        style_KotaTebingTinggi_20, style_KotaTanjungBalai_21, style_KotaSibolga_22, style_KotaPematangSiantar_23,
+        style_KotaPadangSidempuan_24, style_KotaMedan_25, style_KotaGunungsitoli_26, style_KotaBinjai_27,
+        style_Karo_28, style_HumbangHasungdutan_29, style_DeliSerdang_30, style_Dairi_31, style_Asahan_32, style_Batubara_33
+      ];
+
+      // Fungsi untuk menentukan warna berdasarkan suitability class
+      function getSuitabilityColor(suitabilityClass) {
+        if (!suitabilityClass) return '#cccccc'; // abu-abu untuk data kosong
+        
+        const sc = suitabilityClass.toString().toLowerCase().trim();
+        if (sc === 's1' || sc === 'sangat sesuai') return '#2d5016'; // hijau tua
+        if (sc === 's2' || sc === 'cukup sesuai') return '#85b66f'; // hijau
+        if (sc === 's3' || sc === 'sesuai marjinal') return '#fec980'; // kuning/orange
+        if (sc === 'n' || sc === 'tidak sesuai') return '#ff0900'; // merah
+        
+        return '#cccccc'; // default abu-abu
+      }
+
+      // Fungsi style baru untuk suitability
+      function createSuitabilityStyle(feature) {
+        const suitabilityClass = feature.get('Suitabil_1') || feature.get('Suitability_Class') || feature.get('SUITABILITY');
+        const fillColor = getSuitabilityColor(suitabilityClass);
+        
+        return new ol.style.Style({
+          fill: new ol.style.Fill({
+            color: fillColor
+          }),
+          stroke: new ol.style.Stroke({
+            color: '#333333',
+            width: 0.5
+          })
+        });
+      }
+
+      // Gabungkan semua features dari semua layer
+      let allDesaFeatures = [];
+      allJsonData.forEach((jsonData, index) => {
+        if (typeof jsonData !== 'undefined') {
+          const format = new ol.format.GeoJSON();
+          const features = format.readFeatures(jsonData, {
+            dataProjection: 'EPSG:4326',
+            featureProjection: 'EPSG:3857'
+          });
+          
+          features.forEach(feature => {
+            // Simpan style function asli untuk referensi jika diperlukan
+            feature.set('original_style', allStyleFunctions[index]);
+            allDesaFeatures.push(feature);
+          });
+        }
+      });
+
+      // Sembunyikan layer asli kecuali batas kabupaten
+      map.getLayers().forEach(layer => {
+        if (layer.get('title') !== 'BatasKabupatenSumateraUtara' && layer !== map.getLayers().getArray()[0]) {
+          layer.setVisible(false);
+        }
+      });
+
+      // Buat layer gabungan dengan style suitability
+      const desaSource = new ol.source.Vector({ features: allDesaFeatures });
+      const desaLayer = new ol.layer.Vector({
+        source: desaSource,
+        style: createSuitabilityStyle,
+        title: 'Semua Desa/Kelurahan Sumatera Utara'
+      });
+      map.addLayer(desaLayer);
+      console.log(`Berhasil menggabungkan ${allDesaFeatures.length} desa/kelurahan.`);
+
+      // Fungsi pencarian dan reset
+      const searchInput = document.getElementById('search-input');
+      const resetButton = document.getElementById('btn-reset');
+
+      function resetMapView() {
+        searchInput.value = '';
+        desaSource.clear();
+        desaSource.addFeatures(allDesaFeatures);
+        const ext = desaSource.getExtent();
+        if (ext && !isNaN(ext[0])) {
+          map.getView().fit(ext, { padding: [50,50,50,50], duration: 500 });
+        }
+      }
+
+      function searchAndFilter(searchTerm) {
+        if (!searchTerm) {
+          resetMapView();
+          return;
+        }
+        
+        const lowerCaseSearchTerm = searchTerm.toLowerCase();
+        const filteredFeatures = allDesaFeatures.filter(feature => {
+          const namaKab = (feature.get('WADMKK') || '').toLowerCase();
+          return namaKab.includes(lowerCaseSearchTerm);
+        });
+
+        desaSource.clear();
+        desaSource.addFeatures(filteredFeatures);
+
+        if (filteredFeatures.length > 0) {
+          map.getView().fit(desaSource.getExtent(), { padding: [50, 50, 50, 50], maxZoom: 11, duration: 500 });
+        } else {
+          alert('Kabupaten/Kota tidak ditemukan.');
+          resetMapView();
+        }
+      }
+
+      searchInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+          searchAndFilter(this.value.trim());
+        }
+      });
+      resetButton.addEventListener('click', resetMapView);
+
+      // Setup popup
+      const popupContainer = document.getElementById('popup');
+      const popupContent = document.getElementById('popup-content');
+      const popupCloser = document.getElementById('popup-closer');
+
+      const overlay = new ol.Overlay({
+        element: popupContainer,
+        autoPan: true,
+        autoPanAnimation: { duration: 250 },
+        positioning: 'bottom-center',
+        offset: [0, -10]
+      });
+      map.addOverlay(overlay);
+
+      popupCloser.addEventListener('click', function(evt) {
+        evt.preventDefault();
+        overlay.setPosition(undefined);
+        popupContainer.style.display = 'none';
+        return false;
+      });
+
+      function safeValue(value, decimalPlaces = 2) {
+        if (value === null || typeof value === 'undefined' || value === '') return '-';
+        if (typeof value === 'number') return value.toFixed(decimalPlaces);
+        const num = parseFloat(value);
+        if (!isNaN(num)) return num.toFixed(decimalPlaces);
+        return value;
+      }
+
+      function getSuitabilityLabel(suitabilityClass) {
+        if (!suitabilityClass) return 'Tidak Diketahui';
+        
+        const sc = suitabilityClass.toString().toLowerCase().trim();
+        if (sc === 's1' || sc === 'sangat sesuai') return 'S1 - Sangat Sesuai';
+        if (sc === 's2' || sc === 'cukup sesuai') return 'S2 - Cukup Sesuai';
+        if (sc === 's3' || sc === 'sesuai marjinal') return 'S3 - Sesuai Marjinal';
+        if (sc === 'n' || sc === 'tidak sesuai') return 'N - Tidak Sesuai';
+        
+        return suitabilityClass; // return original jika tidak cocok dengan kategori
+      }
+
+      function getSuitabilityClass(suitabilityClass) {
+        if (!suitabilityClass) return '';
+        
+        const sc = suitabilityClass.toString().toLowerCase().trim();
+        if (sc === 's1' || sc === 'sangat sesuai') return 'suitability-s1';
+        if (sc === 's2' || sc === 'cukup sesuai') return 'suitability-s2';
+        if (sc === 's3' || sc === 'sesuai marjinal') return 'suitability-s3';
+        if (sc === 'n' || sc === 'tidak sesuai') return 'suitability-n';
+        
+        return '';
+      }
+
+      // Hover effect
+      let hoveredFeature = null;
+      const hoverStyle = new ol.style.Style({
+        stroke: new ol.style.Stroke({ color: 'rgba(255, 255, 0, 1.0)', width: 3 }),
+        fill: new ol.style.Fill({ color: 'rgba(255, 255, 0, 0.3)' })
+      });
+
+      map.on('pointermove', function(e) {
+        if (e.dragging) return;
+
+        const featureAtPixel = map.forEachFeatureAtPixel(e.pixel, function(f, layer) {
+          if (!f) return null;
+          if (layer && layer.get && layer.get('title') === 'Semua Desa/Kelurahan Sumatera Utara') return f;
+          return null;
+        });
+
+        if (hoveredFeature && hoveredFeature !== featureAtPixel) {
+          hoveredFeature.setStyle(createSuitabilityStyle(hoveredFeature));
+          hoveredFeature = null;
+        }
+        if (featureAtPixel && featureAtPixel !== hoveredFeature) {
+          featureAtPixel.setStyle(hoverStyle);
+          hoveredFeature = featureAtPixel;
+        }
+
+        map.getTargetElement().style.cursor = hoveredFeature ? 'pointer' : '';
+      });
+
+      // Click event untuk popup
+      map.on('singleclick', function(evt) {
+        const feature = map.forEachFeatureAtPixel(evt.pixel, function(f, layer) {
+          if (!f) return null;
+          if (layer && layer.get && layer.get('title') === 'Semua Desa/Kelurahan Sumatera Utara') return f;
+          return null;
+        });
+
+        if (feature) {
+          try {
+            const props = feature.getProperties();
+            const geom = feature.getGeometry();
+            const closest = geom.getClosestPoint(evt.coordinate);
+
+            // Ambil data suitability dan indeks
+            const suitabilityClass = props['Suitabil_1'] || props['Suitability_Class'] || props['SUITABILITY'] || '';
+            const suitabilityLabel = getSuitabilityLabel(suitabilityClass);
+            const suitabilityClassCSS = getSuitabilityClass(suitabilityClass);
+            
+            const limitingFactor = props['Limiting_Factor'] || props['LIMITING'] || '';
+
+            const content = `
+              <h3>${safeValue(props['NAMOBJ'])}</h3>
+              <h4>${suitabilityLabel} <span class="suitability-indicator ${suitabilityClassCSS}">${suitabilityClass}</span></h4>
+              <hr>
+              <table class="popup-table">
+                <tr><td>Nama Kecamatan</td><td>: ${safeValue(props['WADMKC'])}</td></tr>
+                <tr><td>Nama Kabupaten/Kota</td><td>: ${safeValue(props['WADMKK'])}</td></tr>
+                <tr><td>Luas Wilayah (Ha)</td><td>: ${safeValue(props['LUASWH'])}</td></tr>
+                <tr><td>Faktor Pembatas</td><td>: ${limitingFactor || '-'}</td></tr>
+                <tr><td>Indeks Iklim</td><td>: ${safeValue(props['Index_Clim'] || props['INDEX_CLIMATE'])}</td></tr>
+                <tr><td>Indeks Tanah</td><td>: ${safeValue(props['Index_Soil'] || props['INDEX_SOIL'])}</td></tr>
+                <tr><td>Indeks Topografi</td><td>: ${safeValue(props['Index_Topo'] || props['INDEX_TOPOGRAPHY'])}</td></tr
